@@ -27,6 +27,36 @@ from prismatic.vla.datasets.rlds.utils.data_utils import (
     relabel_bridge_actions,
 )
 
+#NOTE dataset transformation
+def bm_sim_abs_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-2]
+        else:
+            trajectory[key] = trajectory[key][:-2]
+
+    #NOTE use delta joint value as an action
+    trajectory["action"] = trajectory["action"]["local_joint"]    
+    return trajectory
+
+def bm_sim_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-2]
+        else:
+            trajectory[key] = trajectory[key][:-2]
+
+    #NOTE use delta joint value as an action
+    trajectory["action"] = trajectory["action"]["delta_joint"]    
+    return trajectory
 
 def bridge_oxe_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -826,6 +856,8 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'bm_sim_abs' : bm_sim_abs_dataset_transform,
+    'bm_sim' : bm_sim_dataset_transform, # added for bimanual sim
     "bridge_oxe": bridge_oxe_dataset_transform,
     "bridge_orig": bridge_orig_dataset_transform,
     "bridge_dataset": bridge_orig_dataset_transform,

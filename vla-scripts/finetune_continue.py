@@ -28,6 +28,7 @@ import draccus
 import torch
 import torch.distributed as dist
 import tqdm
+import json
 from accelerate import PartialState
 from peft import LoraConfig, PeftModel, get_peft_model, prepare_model_for_kbit_training
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -108,7 +109,7 @@ def finetune(cfg: FinetuneConfig) -> None:
     assert torch.cuda.is_available(), "Fine-tuning assumes at least one GPU is available!"
     distributed_state = PartialState()
     # torch.cuda.set_device(device_id := distributed_state.local_process_index)
-    torch.cuda.set_device(device_id := 6)
+    torch.cuda.set_device(device_id := 5)
     torch.cuda.empty_cache()
 
     # Configure Unique Experiment ID & Log Directory
@@ -135,14 +136,19 @@ def finetune(cfg: FinetuneConfig) -> None:
         )
 
     # Load OpenVLA Processor and Model using HF AutoClasses
+    ckpt_dir = '/home/jellyho/openvla_run/openvla-7b+bm_sim+b16+lr-0.0005+lora-r32+dropout-0.0'
+    adapter_dir = '/home/jellyho/openvla_tmp/openvla-7b+bm_sim+b16+lr-0.0005+lora-r32+dropout-0.0'
+    dataset_stats_file =  open(ckpt_dir + '/dataset_statistics.json', 'r')
+    norm_stats = json.load(dataset_stats_file)
     processor = AutoProcessor.from_pretrained(cfg.vla_path, trust_remote_code=True)
-    vla = AutoModelForVision2Seq.from_pretrained(
-        cfg.vla_path,
-        torch_dtype=torch.bfloat16,
-        quantization_config=quantization_config,
-        low_cpu_mem_usage=True,
-        trust_remote_code=True,
-    )
+    vla = AutoModelForVision2Seq.from_pretrained('openvla/openvla-7b', torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, trust_remote_code=True, norm_stats=norm_stats).train()
+    from safetensors import safe_open
+    tensors = {}
+    with safe_open("/home/jellyho/openvla_tmp/openvla-7b+bm_sim+b16+lr-0.0005+lora-r32+dropout-0.0/adapter_model.safetensors", framework="pt", device=device_id) as f:
+        for k in f.keys():
+            tensors[k] = f.get_tensor(k)
+    # model_params = torch.load('/home/jellyho/openvla_tmp/openvla-7b+bm_sim+b16+lr-0.0005+lora-r32+dropout-0.0/adapter_model.safetensors')
+    # vla = PeftModel.from_pretrained(base_vla, adapter_dir).train()
     print('vla loaded')
     # Device Placement =>> note that BitsAndBytes automatically handles for quantized training
     if cfg.use_quantization:
@@ -160,7 +166,9 @@ def finetune(cfg: FinetuneConfig) -> None:
             init_lora_weights="gaussian",
         )
         vla = get_peft_model(vla, lora_config)
-        vla.print_trainable_parameters()
+    # print(tensors)
+    vla.load_state_dict(tensors)
+    vla.print_trainable_parameters()
 
     # Wrap VLA in PyTorch DDP Wrapper for Multi-GPU Training
     vla = DDP(vla, device_ids=[device_id], find_unused_parameters=True, gradient_as_bucket_view=True)
@@ -330,7 +338,7 @@ def finetune(cfg: FinetuneConfig) -> None:
                     merged_vla = PeftModel.from_pretrained(base_vla, adapter_dir)
                     merged_vla = merged_vla.merge_and_unload()
                     if distributed_state.is_main_process:
-                        merged_vla.save_pretrained(run_dir)
+                        merged_vla.save_pretrained(run_dir + 'merged/')
 
                 # Block on Main Process Checkpointing
                 dist.barrier()
