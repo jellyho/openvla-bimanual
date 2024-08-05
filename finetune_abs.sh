@@ -3,7 +3,7 @@
 torchrun --standalone --nnodes 1 --nproc-per-node 1 vla-scripts/finetune.py \
   --vla_path "openvla/openvla-7b" \
   --data_root_dir /home/jellyho/tensorflow_datasets \
-  --dataset_name bm_sim_abs \
+  --dataset_name bm_sim_v0_abs \
   --run_root_dir /home/jellyho/openvla_run \
   --adapter_tmp_dir /home/jellyho/openvla_tmp \
   --lora_rank 32 \

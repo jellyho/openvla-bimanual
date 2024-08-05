@@ -856,6 +856,7 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'bm_sim_v0_abs' : bm_sim_abs_dataset_transform,
     'bm_sim_abs' : bm_sim_abs_dataset_transform,
     'bm_sim' : bm_sim_dataset_transform, # added for bimanual sim
     "bridge_oxe": bridge_oxe_dataset_transform,
