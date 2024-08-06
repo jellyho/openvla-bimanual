@@ -312,10 +312,10 @@ def finetune(cfg: FinetuneConfig) -> None:
 
                     # Save Processor & Weights
                     processor.save_pretrained(run_dir)
-                    for name, param in vla.module.named_parameters():
-                        if torch.isnan(param).any():
-                            print(f"Parameter {name} contains NaN values.")
-                            print(f"Parameter {name}: min={param.min().item()}, max={param.max().item()}")
+                    # for name, param in vla.module.named_parameters():
+                    #     if torch.isnan(param).any():
+                    #         print(f"Parameter {name} contains NaN values.")
+                    #         print(f"Parameter {name}: min={param.min().item()}, max={param.max().item()}")
                     vla.module.save_pretrained(save_dir)
 
                 # Wait for processor and adapter weights to be saved by main process
@@ -323,17 +323,17 @@ def finetune(cfg: FinetuneConfig) -> None:
 
                 # Merge LoRA weights into model backbone for faster inference
                 #   =>> Note that merging is slow and can be done post-hoc to speed up training
-                if cfg.use_lora:
-                    base_vla = AutoModelForVision2Seq.from_pretrained(
-                        cfg.vla_path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, trust_remote_code=True
-                    )
-                    merged_vla = PeftModel.from_pretrained(base_vla, adapter_dir)
-                    merged_vla = merged_vla.merge_and_unload()
-                    if distributed_state.is_main_process:
-                        merged_vla.save_pretrained(run_dir)
+                # if cfg.use_lora:
+                #     base_vla = AutoModelForVision2Seq.from_pretrained(
+                #         cfg.vla_path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, trust_remote_code=True
+                #     )
+                #     merged_vla = PeftModel.from_pretrained(base_vla, adapter_dir)
+                #     merged_vla = merged_vla.merge_and_unload()
+                #     if distributed_state.is_main_process:
+                #         merged_vla.save_pretrained(run_dir)
 
-                # Block on Main Process Checkpointing
-                dist.barrier()
+                # Block on Main Pqqrocess Checkpointing
+                # dist.barrier()q
 
 
 if __name__ == "__main__":
