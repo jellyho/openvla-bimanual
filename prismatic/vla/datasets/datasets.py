@@ -34,10 +34,17 @@ class RLDSBatchTransform:
     image_transform: ImageTransform
     prompt_builder_fn: Type[PromptBuilder]
     predict_stop_token: bool = True
+    window_size: int = 1
+    future_action_window_size: int = 0
 
     def __call__(self, rlds_batch: Dict[str, Any]) -> Dict[str, Any]:
         """Converts a RLDS batch to the format expected by the OpenVLA collator/models."""
-        dataset_name, action = rlds_batch["dataset_name"], rlds_batch["action"][0]
+        # print(rlds_batch['action'].shape, rlds_batch["observation"]["image_primary"].shape)
+        dataset_name, action = rlds_batch["dataset_name"], rlds_batch["action"].reshape(-1)
+        # (Action_dim * (window_size + future_action_prediction)
+        
+        
+        # imgs = [Image.fromarray(img) for img in rlds_batch["observation"]["image_primary"]]
         img = Image.fromarray(rlds_batch["observation"]["image_primary"][0])
         lang = rlds_batch["task"]["language_instruction"].decode().lower()
 
@@ -53,10 +60,14 @@ class RLDSBatchTransform:
         # Tokenize (w/ `base_tokenizer`)
         input_ids = self.base_tokenizer(prompt_builder.get_prompt(), add_special_tokens=True).input_ids
         labels = list(input_ids)
+        # print('input_ids', len(labels))
 
         # Tensorize =>> Run Image Transform to get `pixel_values` =>> Return
         #   =>> IMPORTANT :: IF WE'RE USING HF LLM.forward(..., labels=labels), SHIFTING HAPPENS _INSIDE_ MODEL!
         input_ids, labels = torch.tensor(input_ids), torch.tensor(labels)
+        # pixel_values = {}
+        # for i, img in enumerate(imgs):
+        #     pixel_values[f'obs_{i}'] = self.image_transform(img)
         pixel_values = self.image_transform(img)
 
         # [CRITICAL] We do not want to take the loss for anything but the predicted action tokens!
@@ -77,6 +88,8 @@ class RLDSDataset(IterableDataset):
         shuffle_buffer_size: int = 256_000,
         train: bool = True,
         image_aug: bool = False,
+        window_size = 1,
+        future_action_window_size=0,
     ) -> None:
         """Lightweight wrapper around RLDS TFDS Pipeline for use with PyTorch/OpenVLA Data Loaders."""
         self.data_root_dir, self.data_mix, self.batch_transform = data_root_dir, data_mix, batch_transform
@@ -101,8 +114,8 @@ class RLDSDataset(IterableDataset):
         )
         rlds_config = dict(
             traj_transform_kwargs=dict(
-                window_size=1,                                      # If we wanted to feed / predict more than one step
-                future_action_window_size=0,                        # For action chunking
+                window_size=window_size,                        # If we wanted to feed / predict more than one step
+                future_action_window_size=future_action_window_size,                        # For action chunking
                 skip_unlabeled=True,                                # Skip trajectories without language labels
                 goal_relabeling_strategy="uniform",                 # Goals are currently unused
             ),

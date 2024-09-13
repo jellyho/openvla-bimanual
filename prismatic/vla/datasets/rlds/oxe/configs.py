@@ -52,6 +52,34 @@ class ActionEncoding(IntEnum):
 
 # === Individual Dataset Configs ===
 OXE_DATASET_CONFIGS = {
+    "onearm_clean_joint_pos": { #NOTE dataset config for onearm sim
+        "image_obs_keys": {"primary": "image", "secondary": None, "wrist": None},
+        "depth_obs_keys": {"primary": None, "secondary": None, "wrist": None},
+        "state_obs_keys": ["joint_pos"],
+        "state_encoding": StateEncoding.JOINT,
+        "action_encoding": ActionEncoding.EEF_POS,
+    },
+    "onearm_clean_joint_vel": { #NOTE dataset config for onearm sim
+        "image_obs_keys": {"primary": "image", "secondary": None, "wrist": None},
+        "depth_obs_keys": {"primary": None, "secondary": None, "wrist": None},
+        "state_obs_keys": ["joint_pos"],
+        "state_encoding": StateEncoding.JOINT,
+        "action_encoding": ActionEncoding.EEF_POS,
+    },
+    "onearm_clean_ee_rpy_pos": { #NOTE dataset config for onearm sim
+        "image_obs_keys": {"primary": "image", "secondary": None, "wrist": None},
+        "depth_obs_keys": {"primary": None, "secondary": None, "wrist": None},
+        "state_obs_keys": ["joint_pos"],
+        "state_encoding": StateEncoding.JOINT,
+        "action_encoding": ActionEncoding.EEF_POS,
+    },
+    "onearm_clean_ee_rpy_vel": { #NOTE dataset config for onearm sim
+        "image_obs_keys": {"primary": "image", "secondary": None, "wrist": None},
+        "depth_obs_keys": {"primary": None, "secondary": None, "wrist": None},
+        "state_obs_keys": ["joint_pos"],
+        "state_encoding": StateEncoding.JOINT,
+        "action_encoding": ActionEncoding.EEF_POS,
+    },
     "bm_sim": { #NOTE dataset config for bimanual sim
         "image_obs_keys": {"primary": "image", "secondary": None, "wrist": None},
         "depth_obs_keys": {"primary": None, "secondary": None, "wrist": None},

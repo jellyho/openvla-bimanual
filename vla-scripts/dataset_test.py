@@ -78,12 +78,12 @@ class FinetuneConfig:
     adapter_tmp_dir: Path = Path("adapter-tmp")                     # Temporary directory for LoRA weights before fusing
 
     # Fine-tuning Parameters
-    batch_size: int = 16                                            # Fine-tuning batch size
+    batch_size: int = 1                                          # Fine-tuning batch size
     max_steps: int = 200_000                                        # Max number of fine-tuning steps
-    save_steps: int = 5000                                          # Interval for checkpoint saving
+    save_steps: int = 1000                                          # Interval for checkpoint saving
     learning_rate: float = 2e-5                                     # Fine-tuning learning rate
     grad_accumulation_steps: int = 1                                # Gradient accumulation steps
-    image_aug: bool = False                                         # Whether to train with image augmentations
+    image_aug: bool = True                                          # Whether to train with image augmentations
     shuffle_buffer_size: int = 100_000                              # Dataloader shuffle buffer size (can reduce if OOM)
 
     # LoRA Arguments
@@ -98,8 +98,6 @@ class FinetuneConfig:
     wandb_entity: str = "stanford-voltron"                          # Name of entity to log under
 
     # fmt: on
-    window_size = 3
-    future_action_window_size = 30 - 1
 
 
 @draccus.wrap()
@@ -181,8 +179,6 @@ def finetune(cfg: FinetuneConfig) -> None:
         processor.tokenizer,
         image_transform=processor.image_processor.apply_transform,
         prompt_builder_fn=PurePromptBuilder if "v01" not in cfg.vla_path else VicunaV15ChatPromptBuilder,
-        window_size=cfg.window_size,
-        future_action_window_size=cfg.future_action_window_size
     )
     #INFO
     vla_dataset = RLDSDataset(
@@ -192,8 +188,6 @@ def finetune(cfg: FinetuneConfig) -> None:
         resize_resolution=tuple(vla.module.config.image_sizes),
         shuffle_buffer_size=cfg.shuffle_buffer_size,
         image_aug=cfg.image_aug,
-        window_size=cfg.window_size,
-        future_action_window_size=cfg.future_action_window_size
     )
 
     # [Important] Save Dataset Statistics =>> used to de-normalize actions for inference!
@@ -212,10 +206,6 @@ def finetune(cfg: FinetuneConfig) -> None:
         num_workers=0,  # Important =>> Set to 0 if using RLDS; TFDS rolls its own parallelism!
     )
 
-    # Initialize Logging =>> W&B
-    if distributed_state.is_main_process:
-        wandb.init(entity=cfg.wandb_entity, project=cfg.wandb_project, name=f"ft+{exp_id}")
-
     # Deque to store recent train metrics (used for computing smoothened metrics for gradient accumulation)
     recent_losses = deque(maxlen=cfg.grad_accumulation_steps)
     recent_action_accuracies = deque(maxlen=cfg.grad_accumulation_steps)
@@ -227,6 +217,7 @@ def finetune(cfg: FinetuneConfig) -> None:
         optimizer.zero_grad()
         for batch_idx, batch in enumerate(dataloader):
             with torch.autocast("cuda", dtype=torch.bfloat16):
+                print(batch['input_ids'].shape, batch['labels'].shape)
                 output: CausalLMOutputWithPast = vla(
                     input_ids=batch["input_ids"].to(device_id),
                     attention_mask=batch["attention_mask"].to(device_id),
@@ -281,50 +272,11 @@ def finetune(cfg: FinetuneConfig) -> None:
             smoothened_action_accuracy = sum(recent_action_accuracies) / len(recent_action_accuracies)
             smoothened_l1_loss = sum(recent_l1_losses) / len(recent_l1_losses)
 
-            # Push Metrics to W&B (every 10 gradient steps)
-            if distributed_state.is_main_process and gradient_step_idx % 10 == 0:
-                wandb.log(
-                    {"train_loss": smoothened_loss, "action_accuracy": smoothened_action_accuracy, "l1_loss": smoothened_l1_loss}, step=gradient_step_idx
-                )
-
             # Optimizer Step
             if (batch_idx + 1) % cfg.grad_accumulation_steps == 0:
                 optimizer.step()
                 optimizer.zero_grad()
                 progress.update()
-
-            # Save Model Checkpoint =>> by default, only keeps the latest checkpoint, continually overwriting it!
-            if gradient_step_idx > 0 and gradient_step_idx % cfg.save_steps == 0:
-                if distributed_state.is_main_process:
-                    print(f"Saving Model Checkpoint for Step {gradient_step_idx}")
-
-                    # If LoRA, we first save adapter weights, then merge into full model; otherwise, default save!
-                    save_dir = adapter_dir if cfg.use_lora else run_dir
-
-                    # Save Processor & Weights
-                    processor.save_pretrained(run_dir)
-                    # for name, param in vla.module.named_parameters():
-                    #     if torch.isnan(param).any():
-                    #         print(f"Parameter {name} contains NaN values.")
-                    #         print(f"Parameter {name}: min={param.min().item()}, max={param.max().item()}")
-                    vla.module.save_pretrained(save_dir)
-
-                # Wait for processor and adapter weights to be saved by main process
-                dist.barrier()
-
-                # Merge LoRA weights into model backbone for faster inference
-                #   =>> Note that merging is slow and can be done post-hoc to speed up training
-                # if cfg.use_lora:
-                #     base_vla = AutoModelForVision2Seq.from_pretrained(
-                #         cfg.vla_path, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True, trust_remote_code=True
-                #     )
-                #     merged_vla = PeftModel.from_pretrained(base_vla, adapter_dir)
-                #     merged_vla = merged_vla.merge_and_unload()
-                #     if distributed_state.is_main_process:
-                #         merged_vla.save_pretrained(run_dir)
-
-                # Block on Main Pqqrocess Checkpointing
-                # dist.barrier()q
 
 
 if __name__ == "__main__":

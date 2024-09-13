@@ -26,6 +26,66 @@ from prismatic.vla.datasets.rlds.utils.data_utils import (
     rel2abs_gripper_actions,
     relabel_bridge_actions,
 )
+from pyquaternion import Quaternion
+
+def onearm_clean_joint_pos_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-2]
+        else:
+            trajectory[key] = trajectory[key][:-2]
+
+    #NOTE use delta joint value as an action
+    trajectory["action"] = trajectory["action"]["joint_pos"]    
+    return trajectory
+    
+def onearm_clean_joint_vel_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-2]
+        else:
+            trajectory[key] = trajectory[key][:-2]
+
+    #NOTE use delta joint value as an action
+    trajectory["action"] = trajectory["action"]["joint_vel"]    
+    return trajectory
+    
+def onearm_clean_ee_rpy_pos_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-2]
+        else:
+            trajectory[key] = trajectory[key][:-2]
+        
+    trajectory["action"] = trajectory["action"]["ee_rpy_pos"]
+    return trajectory
+    
+def onearm_clean_ee_rpy_vel_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-2]
+        else:
+            trajectory[key] = trajectory[key][:-2]
+
+    #NOTE use delta joint value as an action
+    trajectory["action"] = trajectory["action"]["ee_rpy_vel"]    
+    return trajectory
 
 #NOTE dataset transformation
 def bm_sim_abs_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
@@ -871,6 +931,10 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'onearm_clean_joint_vel' : onearm_clean_joint_vel_dataset_transform,
+    'onearm_clean_joint_pos' : onearm_clean_joint_pos_dataset_transform,
+    'onearm_clean_ee_rpy_vel' : onearm_clean_ee_rpy_vel_dataset_transform,
+    'onearm_clean_ee_rpy_pos' : onearm_clean_ee_rpy_pos_dataset_transform,
     'bm_sim_v0_vel' : bm_sim_vel_dataset_transform,
     'bm_sim_v0_abs' : bm_sim_abs_dataset_transform,
     'bm_sim_abs' : bm_sim_abs_dataset_transform,
