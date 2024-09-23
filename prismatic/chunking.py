@@ -1,4 +1,8 @@
-def predict_action_chunk(vla, input_ids=None, unnorm_key=None, **kwargs):
+import torch
+import numpy as np
+
+
+def predict_action_chunk(vla, input_ids=None, unnorm_key=None, ation_chunk=10, **kwargs):
     """Thin wrapper around super().generate() that decodes predicted actions and de-normalizes them."""
 
     # We need to add this special empty token ('') after the colon (':') token in "ASSISTANT:"
@@ -9,16 +13,16 @@ def predict_action_chunk(vla, input_ids=None, unnorm_key=None, **kwargs):
 
     # Run VLA inference
     ##$#$#$#$# changed inference length
-    generated_ids = vla.generate(input_ids, max_new_tokens=vla.get_action_dim(unnorm_key) * self.Action_Length,
-                                    min_new_tokens=vla.get_action_dim(unnorm_key) * self.Action_Length, **kwargs)
-    print(generated_ids.shape)
+    generated_ids = vla.generate(input_ids, max_new_tokens=vla.get_action_dim(unnorm_key) * ation_chunk,
+                                    min_new_tokens=vla.get_action_dim(unnorm_key) * ation_chunk, **kwargs)
+    # print(generated_ids.shape)
     # Extract predicted action tokens and translate into (normalized) continuous actions
-    predicted_action_token_ids = generated_ids[0, -vla.get_action_dim(unnorm_key) * self.Action_Length :].cpu().numpy()
+    predicted_action_token_ids = generated_ids[0, -vla.get_action_dim(unnorm_key) * ation_chunk :].cpu().numpy()
     
     discretized_actions = vla.vocab_size - predicted_action_token_ids
     discretized_actions = np.clip(discretized_actions - 1, a_min=0, a_max=vla.bin_centers.shape[0] - 1)
     normalized_actions = vla.bin_centers[discretized_actions]
-    normalized_actions = normalized_actions.reshape(self.Action_Length, -1)     
+    normalized_actions = normalized_actions.reshape(ation_chunk, -1)     
 
     # Unnormalize actions
     unnormalized_actions = []
