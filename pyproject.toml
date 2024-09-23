@@ -9,7 +9,7 @@ authors = [
     {name = "Karl Pertsch", email="pertsch@berkeley.edu"},
     {name = "Siddharth Karamcheti", email="skaramcheti@cs.stanford.edu"},
 ]
-description = "OpenVLA: Vision-Language-Action Models for Robotics"
+description = "OpenVLA: Vision-Language-Action Models for Robotics BIMANUAL, CHUNKING ADDED"
 version = "0.0.3"
 readme = "README.md"
 requires-python = ">=3.8"
