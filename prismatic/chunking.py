@@ -1,4 +1,4 @@
-def predict_action_chunk(self, vla, input_ids=None, unnorm_key=None, **kwargs):
+def predict_action_chunk(vla, input_ids=None, unnorm_key=None, **kwargs):
     """Thin wrapper around super().generate() that decodes predicted actions and de-normalizes them."""
 
     # We need to add this special empty token ('') after the colon (':') token in "ASSISTANT:"
