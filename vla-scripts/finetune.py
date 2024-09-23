@@ -98,8 +98,8 @@ class FinetuneConfig:
     wandb_entity: str = "stanford-voltron"                          # Name of entity to log under
 
     # fmt: on
-    window_size = 3
-    future_action_window_size = 30 - 1
+    window_size: int = 1
+    future_action_window_size: int = 10 - 1
 
 
 @draccus.wrap()

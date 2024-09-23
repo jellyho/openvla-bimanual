@@ -40,7 +40,7 @@ def lg_clean_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
             trajectory[key] = trajectory[key][:-2]
 
     #NOTE use delta joint value as an action
-    trajectory["action"] = trajectory["action"]["ee_pos"]    
+    trajectory["action"] = trajectory["action"]["delta_ee"]    
     return trajectory
 
 def onearm_clean_joint_pos_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:

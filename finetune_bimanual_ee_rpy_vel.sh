@@ -11,8 +11,8 @@ torchrun --standalone --nnodes 1 --nproc-per-node 1 vla-scripts/finetune.py \
   --grad_accumulation_steps 4 \
   --learning_rate 5e-4 \
   --image_aug False \
-  --wandb_project OneArmClean_OpenVLA \
+  --wandb_project LGClean_OpenVLA \
   --wandb_entity jellyho_ \
-  --save_steps 1000
-  --window_size 1
+  --save_steps 1000 \
+  --window_size 1 \
   --future_action_window_size 9
