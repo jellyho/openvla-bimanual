@@ -28,6 +28,7 @@ from prismatic.vla.datasets.rlds.utils.data_utils import (
 )
 from pyquaternion import Quaternion
 
+
 def lg_clean_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
     #NOTE remove last two timesteps
     for key in trajectory.keys():
@@ -40,7 +41,7 @@ def lg_clean_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
             trajectory[key] = trajectory[key][:-2]
 
     #NOTE use delta joint value as an action
-    trajectory["action"] = trajectory["action"]["delta_ee"]    
+    trajectory["action"] = trajectory["action"]["delta_ee"]   
     return trajectory
 
 def onearm_clean_joint_pos_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
@@ -946,6 +947,8 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'lg_stack_bowls_5hz' : lg_clean_dataset_transform,
+    'lg_stack_bowls' : lg_clean_dataset_transform,
     'lg_clean' : lg_clean_dataset_transform,
     'onearm_clean_joint_vel' : onearm_clean_joint_vel_dataset_transform,
     'onearm_clean_joint_pos' : onearm_clean_joint_pos_dataset_transform,

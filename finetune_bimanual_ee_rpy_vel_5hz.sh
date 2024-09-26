@@ -3,7 +3,7 @@
 torchrun --standalone --nnodes 1 --nproc-per-node 1 vla-scripts/finetune.py \
   --vla_path "openvla/openvla-7b" \
   --data_root_dir /home/jellyho/tensorflow_datasets \
-  --dataset_name lg_stack_bowls \
+  --dataset_name lg_stack_bowls_5hz \
   --run_root_dir /home/jellyho/openvla_run \
   --adapter_tmp_dir /home/jellyho/openvla_tmp \
   --lora_rank 64 \
@@ -15,4 +15,4 @@ torchrun --standalone --nnodes 1 --nproc-per-node 1 vla-scripts/finetune.py \
   --wandb_entity jellyho_ \
   --save_steps 1000 \
   --window_size 1 \
-  --future_action_window_size 0
+  --future_action_window_size 9
