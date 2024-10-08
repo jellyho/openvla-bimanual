@@ -91,7 +91,7 @@ class RldsBimanualDataset(tfds.core.GeneratorBasedBuilder):
             episode = []
             for i in range(length - 4):
                 language_embedding = self._embed([nli[i]])[0].numpy()
-                delta_ee = np.concatenate([delta_ee_left, np.array(grp_left[i, 6]).reshape(1), delta_ee_right, np.array(grp_right[i, -1]).reshape(1)])
+                delta_ee = np.concatenate([delta_ee_left[i], np.array(grp_left[i]).reshape(1), delta_ee_right[i], np.array(grp_right[i]).reshape(1)])
                 episode.append({
                         'observation': {
                             'image': image[i],
