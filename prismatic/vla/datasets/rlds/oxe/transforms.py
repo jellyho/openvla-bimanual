@@ -29,6 +29,21 @@ from prismatic.vla.datasets.rlds.utils.data_utils import (
 from pyquaternion import Quaternion
 
 
+def lg_stack_cup_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-1]
+        else:
+            trajectory[key] = trajectory[key][:-1]
+
+    #NOTE use delta joint value as an action
+    trajectory["action"] = trajectory["action"]["delta_ee"]   
+    return trajectory
+
 def lg_clean_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
     #NOTE remove last two timesteps
     for key in trajectory.keys():
@@ -947,6 +962,7 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'lg_stack_cup_5hz' : lg_stack_cup_dataset_transform,
     'lg_cup_color_5hz' : lg_clean_dataset_transform,
     'lg_stack_bowls_5hz' : lg_clean_dataset_transform,
     'lg_stack_bowls' : lg_clean_dataset_transform,
