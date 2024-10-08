@@ -303,10 +303,6 @@ def finetune(cfg: FinetuneConfig) -> None:
 
                     # Save Processor & Weights
                     processor.save_pretrained(run_dir)
-                    # for name, param in vla.module.named_parameters():
-                    #     if torch.isnan(param).any():
-                    #         print(f"Parameter {name} contains NaN values.")
-                    #         print(f"Parameter {name}: min={param.min().item()}, max={param.max().item()}")
                     vla.module.save_pretrained(save_dir)
 
                 # Wait for processor and adapter weights to be saved by main process
@@ -324,7 +320,7 @@ def finetune(cfg: FinetuneConfig) -> None:
                 #         merged_vla.save_pretrained(run_dir)
 
                 # Block on Main Pqqrocess Checkpointing
-                # dist.barrier()q
+                dist.barrier()
 
 
 if __name__ == "__main__":

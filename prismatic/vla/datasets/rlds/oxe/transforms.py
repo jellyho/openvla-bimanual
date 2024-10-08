@@ -947,6 +947,7 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'lg_cup_color_5hz' : lg_clean_dataset_transform,
     'lg_stack_bowls_5hz' : lg_clean_dataset_transform,
     'lg_stack_bowls' : lg_clean_dataset_transform,
     'lg_clean' : lg_clean_dataset_transform,
