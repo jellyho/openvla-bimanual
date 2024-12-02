@@ -158,6 +158,7 @@ class RLDSDataset(IterableDataset):
 
     def __iter__(self) -> Dict[str, Any]:
         for rlds_batch in self.dataset.as_numpy_iterator():
+            # print(rlds_batch['action'].shape)
             yield self.batch_transform(rlds_batch)
 
     def __len__(self) -> int:

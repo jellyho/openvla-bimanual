@@ -3,7 +3,7 @@
 torchrun --standalone --nnodes 1 --nproc-per-node 1 vla-scripts/finetune.py \
   --vla_path "openvla/openvla-7b" \
   --data_root_dir /home/jellyho/tensorflow_datasets \
-  --dataset_name lg_cup_color_rightarm \
+  --dataset_name lg_cup_color_rightarm_leftview \
   --run_root_dir /home/jellyho/openvla_run \
   --adapter_tmp_dir /home/jellyho/openvla_tmp \
   --lora_rank 64 \

@@ -28,6 +28,20 @@ from prismatic.vla.datasets.rlds.utils.data_utils import (
 )
 from pyquaternion import Quaternion
 
+def lg_delta_ee_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
+    #NOTE remove last two timesteps
+    for key in trajectory.keys():
+        if key == "traj_metadata":
+            continue
+        elif key in ["observation", "action"]:
+            for key2 in trajectory[key]:
+                trajectory[key][key2] = trajectory[key][key2][:-1]
+        else:
+            trajectory[key] = trajectory[key][:-1]
+
+    #NOTE use delta joint value as an action
+    trajectory["action"] = trajectory["action"]["delta_ee"]   
+    return trajectory
 
 def lg_stack_cup_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
     #NOTE remove last two timesteps
@@ -962,6 +976,20 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'vla_benchmark': lg_delta_ee_transform,
+    'bm_pick_tape_single': lg_delta_ee_transform,
+    'bm_move_bowl': lg_delta_ee_transform,
+    'bm_move_tape': lg_delta_ee_transform,
+    'bm_pick_bottle_basket': lg_delta_ee_transform,
+    'bm_pick_bottle_stand': lg_delta_ee_transform,
+    'bm_pick_tape': lg_delta_ee_transform,
+    'bm_stack_bowls': lg_delta_ee_transform,
+    'bm_upright_mug': lg_delta_ee_transform,
+    'bm_upright_screwdriver': lg_delta_ee_transform,
+    'lg_cup_color_rightarm' : lg_stack_cup_dataset_transform,
+    'lg_cup_color_rightarm_dual' : lg_stack_cup_dataset_transform,
+    'lg_transfer_wet_tissue' : lg_stack_cup_dataset_transform,
+    'lg_cup_color_rightarm_leftview' : lg_stack_cup_dataset_transform,
     'lg_stack_cup_5hz' : lg_stack_cup_dataset_transform,
     'lg_cup_color_5hz' : lg_clean_dataset_transform,
     'lg_stack_bowls_5hz' : lg_clean_dataset_transform,

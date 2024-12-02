@@ -109,8 +109,8 @@ def finetune(cfg: FinetuneConfig) -> None:
     # [Validate] Ensure GPU Available & Set Device / Distributed Context
     assert torch.cuda.is_available(), "Fine-tuning assumes at least one GPU is available!"
     distributed_state = PartialState()
-    # torch.cuda.set_device(device_id := distributed_state.local_process_index)
-    torch.cuda.set_device(device_id := 0)
+    torch.cuda.set_device(device_id := distributed_state.local_process_index)
+    # torch.cuda.set_device(device_id := 0)
     torch.cuda.empty_cache()
 
     # Configure Unique Experiment ID & Log Directory
@@ -173,7 +173,6 @@ def finetune(cfg: FinetuneConfig) -> None:
 
     # Create Action Tokenizer
     action_tokenizer = ActionTokenizer(processor.tokenizer)
-    # print(type(vla.module))
 
     #INFO
     batch_transform = RLDSBatchTransform(
