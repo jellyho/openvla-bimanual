@@ -9,7 +9,7 @@ done
 srun --job-name=OVLA-bench --gres=gpu:$1 torchrun --rdzv_id=$SLURM_JOB_ID --rdzv_backend=static --master_port=$RDZV_PORT --nnodes 1 --nproc-per-node $1 vla-scripts/finetune.py \
   --vla_path "openvla/openvla-7b" \
   --data_root_dir /home/shared/vla_benchmark_rlds \
-  --dataset_name vla_benchmark \
+  --dataset_name vla_benchmark_5hz \
   --run_root_dir /home/jellyho/openvla_run \
   --adapter_tmp_dir /home/jellyho/openvla_tmp \
   --lora_rank 64 \
