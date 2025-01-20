@@ -3,7 +3,7 @@
 torchrun --standalone --nnodes 1 --nproc-per-node 1 vla-scripts/finetune.py \
   --vla_path "openvla/openvla-7b" \
   --data_root_dir /data1/twinvla \
-  --dataset_name singlevla_benchmark_5hz \
+  --dataset_name twinvla_benchmark_5hz \
   --run_root_dir /home/jellyho/openvla_run \
   --adapter_tmp_dir /home/jellyho/openvla_tmp \
   --lora_rank 64 \
@@ -11,7 +11,7 @@ torchrun --standalone --nnodes 1 --nproc-per-node 1 vla-scripts/finetune.py \
   --grad_accumulation_steps 4 \
   --learning_rate 5e-4 \
   --image_aug True \
-  --wandb_project Singlevla_benchmark \
+  --wandb_project Twinvla_benchmark \
   --wandb_entity jellyho_ \
   --save_steps 1000 \
   --window_size 1 \

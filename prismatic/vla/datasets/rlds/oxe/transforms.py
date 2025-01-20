@@ -29,16 +29,6 @@ from prismatic.vla.datasets.rlds.utils.data_utils import (
 from pyquaternion import Quaternion
 
 def lg_delta_ee_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
-    #NOTE remove last two timesteps
-    for key in trajectory.keys():
-        if key == "traj_metadata":
-            continue
-        elif key in ["observation", "action"]:
-            for key2 in trajectory[key]:
-                trajectory[key][key2] = trajectory[key][key2][:-1]
-        else:
-            trajectory[key] = trajectory[key][:-1]
-
     #NOTE use delta joint value as an action
     trajectory["action"] = trajectory["action"]["delta_ee"]   
     return trajectory
@@ -976,6 +966,8 @@ def tdroid_dataset_transform(trajectory: Dict[str, Any]) -> Dict[str, Any]:
 
 # === Registry ===
 OXE_STANDARDIZATION_TRANSFORMS = {
+    'twinvla_benchmark_5hz': lg_delta_ee_transform,
+    'singlevla_benchmark_5hz': lg_delta_ee_transform,
     'vla_benchmark_5hz': lg_delta_ee_transform,
     'vla_benchmark': lg_delta_ee_transform,
     'bm_pick_tape_single': lg_delta_ee_transform,

@@ -57,8 +57,26 @@ vla_benchmark_config = {
     "action_encoding": ActionEncoding.EEF_POS,
 }
 
+singlevla_benchmark_config = {
+    "image_obs_keys": {"primary": "image", "secondary": None, "wrist": None},
+    "depth_obs_keys": {"primary": None, "secondary": None, "wrist": None},
+    "state_obs_keys": ["joint_pos"],
+    "state_encoding": StateEncoding.POS_EULER,
+    "action_encoding": ActionEncoding.EEF_POS,
+}
+
+twinvla_benchmark_config = {
+    "image_obs_keys": {"primary": "rightview_image", "secondary": 'leftview_image', "wrist": None},
+    "depth_obs_keys": {"primary": None, "secondary": None, "wrist": None},
+    "state_obs_keys": ["joint_pos"],
+    "state_encoding": StateEncoding.JOINT_BIMANUAL,
+    "action_encoding": ActionEncoding.JOINT_POS_BIMANUAL,
+}
+
 # === Individual Dataset Configs ===
 OXE_DATASET_CONFIGS = {
+    'twinvla_benchmark_5hz': twinvla_benchmark_config,
+    'singlevla_benchmark_5hz': singlevla_benchmark_config,
     'vla_benchmark_5hz': vla_benchmark_config,
     'vla_benchmark': vla_benchmark_config,
     'bm_move_bowl': vla_benchmark_config,
